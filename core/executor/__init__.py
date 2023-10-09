@@ -1,4 +1,4 @@
-from core.interpreter import Interpreter
+from core.interpreter import Interpreter, Context
 from core.lexer import Lexer
 from core.parser import Parser
 
@@ -13,7 +13,8 @@ def run(filename, text):
     ast = parser.parse()
     if ast.error: return None, ast.error
 
+    context = Context("<program entry>")
     interpreter = Interpreter()
-    result = interpreter.visit(ast.node)
+    result = interpreter.visit(ast.node, context)
 
     return result.value, result.error

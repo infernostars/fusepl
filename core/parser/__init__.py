@@ -88,18 +88,11 @@ class Parser:
             ))
         return res
 
-    def factor(self):
+    def atom(self):
         result = ParseResult()
         token = self.current_token
 
-        if token.type in (token_list["plus"].type, token_list["minus"].type):
-            result.register(self.advance())
-            factor = result.register(self.factor())
-            if result.error:
-                return result
-            return result.success(UnaryOpNode(token, factor))
-
-        elif token.type in (token_list["int"].type, token_list["float"].type):
+        if token.type in (token_list["int"].type, token_list["float"].type):
             result.register(self.advance())
             return result.success(NumberNode(token))
 
@@ -119,8 +112,25 @@ class Parser:
 
         return result.failure(InvalidSyntaxError(
             token.pos_start, token.pos_end,
-            "Expected an integer or a float"
+            "Expected an integer or a float, a unary op, or parenthesis"
         ))
+
+    def factor(self):
+        result = ParseResult()
+        token = self.current_token
+
+        if token.type in (token_list["plus"].type, token_list["minus"].type):
+            result.register(self.advance())
+            factor = result.register(self.factor())
+            if result.error:
+                return result
+            return result.success(UnaryOpNode(token, factor))
+
+
+        return self.power()
+
+    def power(self):
+        return self.bin_op(self.atom, (token_list["pow"], ), self.factor)
 
     def term(self):
         return self.bin_op(self.factor, (token_list["mul"].type, token_list["div"].type))
@@ -128,16 +138,19 @@ class Parser:
     def expression(self):
         return self.bin_op(self.term, (token_list["plus"].type, token_list["minus"].type))
 
-    def bin_op(self, func, ops):
+    def bin_op(self, func_a, ops, func_b=None):
+        if func_b == None:
+            func_b = func_a
+
         result = ParseResult()
-        left = result.register(func())
+        left = result.register(func_a())
         if result.error:
             return result
 
         while self.current_token.type in ops:
             op_token = self.current_token
             result.register(self.advance())
-            right = result.register(func())
+            right = result.register(func_b())
             if result.error: return result
             left = BinaryOpNode(left, op_token, right)
 

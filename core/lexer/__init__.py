@@ -1,9 +1,15 @@
+import string
+
 from core.classes.errors import *
 
 # consts
 
 digits = "0123456789"
+letters = string.ascii_letters
+letters_digits = letters + digits
+var_characters = "_"
 
+keywords_list = ["var"]
 
 # position class
 
@@ -65,12 +71,21 @@ class Token:
 token_list = {
     "plus": Token("plus"),
     "minus": Token("minus"),
+
     "div": Token("div"),
     "mul": Token("mul"),
+    "pow": Token("mul"),
+
     "int": Token("int"),
     "float": Token("float"),
+
     "paren_l": Token("paren_l"),
     "paren_r": Token("paren_r"),
+
+    "keyword": Token("keyword"),  # VAR, FUNC [eventually], stuff like that
+    "identifier": Token("identifier"),
+    "equals": Token("equals"),
+
     "eof": Token("eof"),
 }
 
@@ -115,6 +130,12 @@ char: {self.current_char}""")
                 case "/":
                     tokens.append(token_list["div"].set_post(pos_start=self.pos))
                     self.advance()
+                case "^":
+                    tokens.append(token_list["pow"].set_post(pos_start=self.pos))
+                    self.advance()
+                case "=":
+                    tokens.append(token_list["equals"].set_post(pos_start=self.pos))
+                    self.advance()
                 case "(":
                     tokens.append(token_list["paren_l"].set_post(pos_start=self.pos))
                     self.advance()
@@ -123,6 +144,8 @@ char: {self.current_char}""")
                     self.advance()
                 case _:
                     # complex tokens [numbers and such]
+                    if self.current_char in letters + var_characters:
+                        tokens.append(self.make_identifier())
                     if self.current_char in digits:
                         tokens.append(self.make_numeric())
                     else:
@@ -138,7 +161,7 @@ char: {self.current_char}""")
         dot_count = 0
         pos_start = self.pos.copy()
 
-        while self.current_char is not None and self.current_char in digits + ".":
+        while self.current_char is not None and self.current_char in digits:
             if self.current_char == ".":
                 if dot_count == 1:
                     break  # TODO: error
@@ -151,3 +174,14 @@ char: {self.current_char}""")
             return token_list["int"].set_post(value=int(num_string), pos_start=pos_start, pos_end=self.pos)
         else:
             return token_list["float"].set_post(value=float(num_string), pos_start=pos_start, pos_end=self.pos)
+
+    def make_identifier(self):
+        id_str = ''
+        pos_start = self.pos.copy()
+
+        while self.current_char is not None and self.current_char in letters_digits + var_characters:
+            id_str += self.current_char
+            self.advance()
+
+        token_type = token_list["keyword"] if id_str in keywords_list else token_list["identifier"]
+        return Token(token_type, id_str, pos_start, self.pos)
