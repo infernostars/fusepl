@@ -58,7 +58,7 @@ class Token:
             try:
                 pos_end = self.pos_end
             except:
-                pos_end = pos_start.advance()
+                pos_end = pos_start.copy().advance()
         return Token(self.type, value, pos_start, pos_end)
 
 
