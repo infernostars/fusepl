@@ -146,7 +146,9 @@ char: {self.current_char}""")
                     # complex tokens [numbers and such]
                     if self.current_char in letters + var_characters:
                         tokens.append(self.make_identifier())
-                    if self.current_char in digits:
+                        print(tokens)
+                        print(self.current_char)
+                    elif self.current_char in digits:
                         tokens.append(self.make_numeric())
                     else:
                         pos_start = self.pos.copy()
