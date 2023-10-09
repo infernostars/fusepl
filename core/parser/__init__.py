@@ -14,6 +14,7 @@ class NumberNode:
     def __repr__(self):
         return f'{self.token}'
 
+
 class BinaryOpNode:
     def __init__(self, left_node, op_token, right_node):
         self.left_node = left_node
@@ -34,6 +35,22 @@ class UnaryOpNode:
 
         self.pos_start = self.op_token.pos_start
         self.pos_end = self.node.pos_end
+
+
+class VarAccessNode:
+    def __init__(self, var_name_token):
+        self.var_name_token = var_name_token
+
+        self.pos_start = self.var_name_token.pos_start
+        self.pos_end = self.var_name_token.pos_end
+
+class VarAssignNode:
+    def __init__(self, var_name_token, value_node):
+        self.var_name_token = var_name_token
+        self.value_node = value_node
+
+        self.pos_start = self.var_name_token.pos_start
+        self.pos_end = self.value_node.pos_end
 
     def __repr__(self):
         return f"({self.op_token}, {self.node})"
@@ -81,10 +98,11 @@ class Parser:
 
     def parse(self):
         res = self.expression()
-        if not res.error and self.current_token.type != token_list["eof"].type:            return res.failure(
-            InvalidSyntaxError(
-                self.current_token.pos_start, self.current_token.pos_end,
-                "Expected an operation"
+        if not res.error and self.current_token.type != token_list["eof"].type:
+            return res.failure(
+                InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    "Expected an operation"
             ))
         return res
 
@@ -95,6 +113,10 @@ class Parser:
         if token.type in (token_list["int"].type, token_list["float"].type):
             result.register(self.advance())
             return result.success(NumberNode(token))
+
+        if token.type == token_list["identifier"].type:
+            result.register(self.advance())
+            return result.success(VarAccessNode(token))
 
         elif token.type == token_list["paren_l"].type:  # parenthesis check like 1*(2+5)
             result.register(self.advance())
@@ -112,7 +134,7 @@ class Parser:
 
         return result.failure(InvalidSyntaxError(
             token.pos_start, token.pos_end,
-            "Expected an integer or a float, a unary op, or parenthesis"
+            "Expected an integer, float, a unary op, or parenthesis"
         ))
 
     def factor(self):
@@ -126,20 +148,50 @@ class Parser:
                 return result
             return result.success(UnaryOpNode(token, factor))
 
-
         return self.power()
 
     def power(self):
-        return self.bin_op(self.atom, (token_list["pow"], ), self.factor)
+        return self.bin_op(self.atom, (token_list["pow"],), self.factor)
 
     def term(self):
         return self.bin_op(self.factor, (token_list["mul"].type, token_list["div"].type))
 
     def expression(self):
+        result = ParseResult()
+        print(self.current_token)
+        print(self.current_token.matches(token_list["keyword"], "var"))
+        if self.current_token.matches(token_list["keyword"], "var"):
+            result.register(self.advance())
+
+            if self.current_token.type != token_list["identifier"].type:
+                return result.failure(
+                    InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected identifier"
+                    )
+                )
+
+            var_name = self.current_token
+            result.register(self.advance())
+
+            if self.current_token.type != token_list["equals"].type:
+                return result.failure(
+                    InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected '='"
+                    )
+                )
+
+            result.register(self.advance())
+            expr = result.register(self.expression())
+            if result.error:
+                return result
+            return result.success(VarAssignNode(var_name, expr))
+
         return self.bin_op(self.term, (token_list["plus"].type, token_list["minus"].type))
 
     def bin_op(self, func_a, ops, func_b=None):
-        if func_b == None:
+        if func_b is None:
             func_b = func_a
 
         result = ParseResult()

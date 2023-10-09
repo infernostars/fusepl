@@ -55,6 +55,9 @@ class Token:
             return f"{self.type}:{self.value}"
         return self.type
 
+    def matches(self, type_, value):
+        return self.type == type_ and self.value == value
+
     def set_post(self, value=None, pos_start=None, pos_end=None):
         if value is None:
             value = self.value
@@ -74,7 +77,7 @@ token_list = {
 
     "div": Token("div"),
     "mul": Token("mul"),
-    "pow": Token("mul"),
+    "pow": Token("pow"),
 
     "int": Token("int"),
     "float": Token("float"),
@@ -185,5 +188,5 @@ char: {self.current_char}""")
             id_str += self.current_char
             self.advance()
 
-        token_type = token_list["keyword"] if id_str in keywords_list else token_list["identifier"]
+        token_type = token_list["keyword"].type if id_str in keywords_list else token_list["identifier"].type
         return Token(token_type, id_str, pos_start, self.pos)
