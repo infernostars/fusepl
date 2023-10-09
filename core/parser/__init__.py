@@ -1,4 +1,4 @@
-import resource
+
 
 from core.lexer import token_list
 from core.classes.errors import *
@@ -158,9 +158,7 @@ class Parser:
 
     def expression(self):
         result = ParseResult()
-        print(self.current_token)
-        print(self.current_token.matches(token_list["keyword"], "var"))
-        if self.current_token.matches(token_list["keyword"], "var"):
+        if self.current_token.matches(token_list["keyword"].type, "var"):
             result.register(self.advance())
 
             if self.current_token.type != token_list["identifier"].type:
