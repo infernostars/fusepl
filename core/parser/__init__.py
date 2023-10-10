@@ -187,6 +187,8 @@ class Parser:
                 "Expected an integer, float, identifier, '-', parenthesis, or 'not'"
             ))
 
+        return result.success(node)
+
     def expression(self):
         result = ParseResult()
         if self.current_token.matches(token_list["keyword"].type, "var"):

@@ -246,7 +246,7 @@ char: {self.current_char}""")
             self.advance()
             token = token_list["eq"]
 
-        return token.set_post(pos_start=pos_start, pos_end=self.pos)
+        return token.set_post(pos_start=pos_start, pos_end=self.pos), None
 
     def make_less_than(self):
         pos_start = self.pos.copy() # char already a "=" so we're fine
@@ -257,7 +257,7 @@ char: {self.current_char}""")
             self.advance()
             token = token_list["lte"]
 
-        return token.set_post(pos_start=pos_start, pos_end=self.pos)
+        return token.set_post(pos_start=pos_start, pos_end=self.pos), None
 
     def make_greater_than(self):
         pos_start = self.pos.copy() # char already a "=" so we're fine
@@ -268,4 +268,4 @@ char: {self.current_char}""")
             self.advance()
             token = token_list["gte"]
 
-        return token.set_post(pos_start=pos_start, pos_end=self.pos)
+        return token.set_post(pos_start=pos_start, pos_end=self.pos), None

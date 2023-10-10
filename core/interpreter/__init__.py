@@ -103,6 +103,23 @@ class Interpreter:
             result, error = left.multiply(right)
         if node.op_token.type == token_list["pow"].type:
             result, error = left.power(right)
+        if node.op_token.type == token_list["eq"].type:
+            result, error = left.equals(right)
+        if node.op_token.type == token_list["neq"].type:
+            result, error = left.equals(right).not_l()
+        if node.op_token.type == token_list["lt"].type:
+            result, error = left.less(right)
+        if node.op_token.type == token_list["lte"].type:
+            result, error = left.greater(right).not_l()
+        if node.op_token.type == token_list["gt"].type:
+            result, error = left.greater(right)
+        if node.op_token.type == token_list["gte"].type:
+            result, error = left.less(right).not_l()
+        if node.op_token.type == token_list["and"].type:
+            result, error = left.and_l(right)
+        if node.op_token.type == token_list["or"].type:
+            result, error = left.or_l(right)
+
 
         if error:
             return res.failure(error)
@@ -111,13 +128,15 @@ class Interpreter:
 
     def visit_UnaryOpNode(self, node, context):
         result = RuntimeResult()
-        number = result.register(
+        operand = result.register(
             self.visit(node.node, context))  # this is the child node of the unary op [i.e. the 4 in -4]
 
         if node.op_token.type == token_list["minus"].type:
-            number, error = number.multiply(FuseNumber(-1))
+            operand, error = operand.multiply(FuseNumber(-1))
+        if node.op_token.type == token_list["not"].type:
+            operand, error = operand.not_l()
 
         if error:
             return result.failure(error)
         else:
-            return result.success(number.set_pos(node.pos_start, node.pos_end))
+            return result.success(operand.set_pos(node.pos_start, node.pos_end))
