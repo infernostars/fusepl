@@ -1,7 +1,9 @@
-from core.interpreter import Interpreter, Context
+from core.interpreter import Interpreter, Context, SymbolTable
 from core.lexer import Lexer
 from core.parser import Parser
 
+
+global_symbol_table = SymbolTable()
 
 def run(filename, text):
     lexer = Lexer(filename, text)
@@ -13,7 +15,8 @@ def run(filename, text):
     ast = parser.parse()
     if ast.error: return None, ast.error
 
-    context = Context("<program entry>")
+    context = Context("<shell>")
+    context.symbol_table = global_symbol_table
     interpreter = Interpreter()
     result = interpreter.visit(ast.node, context)
 

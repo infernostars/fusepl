@@ -9,7 +9,12 @@ letters = string.ascii_letters
 letters_digits = letters + digits
 var_characters = "_"
 
-keywords_list = ["var"]
+keywords_list = [
+    "var",
+    "and",
+    "or",
+    "not"
+]
 
 # position class
 
@@ -85,9 +90,16 @@ token_list = {
     "paren_l": Token("paren_l"),
     "paren_r": Token("paren_r"),
 
-    "keyword": Token("keyword"),  # VAR, FUNC [eventually], stuff like that
+    "keyword": Token("keyword"),        # VAR, FUNC [eventually], stuff like that
     "identifier": Token("identifier"),
-    "equals": Token("equals"),
+    "equals": Token("equals"),          # x = y
+
+    "eq": Token("eq"),                  # x == y
+    "neq": Token("neq"),                # x != y or x ~= y [lua compat]
+    "lt": Token("lt"),                  # x <  y
+    "gt": Token("gt"),                  # x >  y
+    "lte": Token("lte"),                # x <= y
+    "gte": Token("gte"),                # x >= y
 
     "eof": Token("eof"),
 }
@@ -110,10 +122,18 @@ pos: {self.pos}
 char: {self.current_char}""")
 
     def advance(self):
+        """
+        Advance into the next character. Should only be used by parser
+        :return:
+        """
         self.pos.advance(self.current_char)
         self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
     def parse(self):
+        """
+        Turns self.text into a list of Tokens.
+        :return: a list of Tokens
+        """
         tokens = []
         self.advance()
         while self.current_char is not None:
@@ -136,21 +156,36 @@ char: {self.current_char}""")
                 case "^":
                     tokens.append(token_list["pow"].set_post(pos_start=self.pos))
                     self.advance()
-                case "=":
-                    tokens.append(token_list["equals"].set_post(pos_start=self.pos))
-                    self.advance()
                 case "(":
                     tokens.append(token_list["paren_l"].set_post(pos_start=self.pos))
                     self.advance()
                 case ")":
                     tokens.append(token_list["paren_r"].set_post(pos_start=self.pos))
                     self.advance()
+                case "~", "!":
+                    token, error = self.make_not_equals()
+                    if error:
+                        return [], error
+                    tokens.append(token)
+                case "=":
+                    token, error = self.make_equals()
+                    if error:
+                        return [], error
+                    tokens.append(token)
+                case ">":
+                    token, error = self.make_greater_than()
+                    if error:
+                        return [], error
+                    tokens.append(token)
+                case "<":
+                    token, error = self.make_less_than()
+                    if error:
+                        return [], error
+                    tokens.append(token)
                 case _:
                     # complex tokens [numbers and such]
                     if self.current_char in letters + var_characters:
                         tokens.append(self.make_identifier())
-                        print(tokens)
-                        print(self.current_char)
                     elif self.current_char in digits:
                         tokens.append(self.make_numeric())
                     else:
@@ -190,3 +225,47 @@ char: {self.current_char}""")
 
         token_type = token_list["keyword"].type if id_str in keywords_list else token_list["identifier"].type
         return Token(token_type, id_str, pos_start, self.pos)
+
+    def make_not_equals(self):
+        pos_start = self.pos.copy() # char already a "~" or "!" so we're fine
+        self.advance()
+
+        if self.current_char == "=":
+            self.advance()
+            return token_list["neq"].set_post(pos_start=pos_start, pos_end=self.pos), None
+
+        self.advance()
+        return None, ExpectedCharError(pos_start, self.pos, "equals sign expected after '!' or '~'")
+
+    def make_equals(self):
+        pos_start = self.pos.copy()  # char already a "=" so we're fine
+        self.advance()
+        token = token_list["equals"]
+
+        if self.current_char == '=':
+            self.advance()
+            token = token_list["eq"]
+
+        return token.set_post(pos_start=pos_start, pos_end=self.pos)
+
+    def make_less_than(self):
+        pos_start = self.pos.copy() # char already a "=" so we're fine
+        self.advance()
+        token = token_list["lt"]
+
+        if self.current_char == '=':
+            self.advance()
+            token = token_list["lte"]
+
+        return token.set_post(pos_start=pos_start, pos_end=self.pos)
+
+    def make_greater_than(self):
+        pos_start = self.pos.copy() # char already a "=" so we're fine
+        self.advance()
+        token = token_list["gt"]
+
+        if self.current_char == '=':
+            self.advance()
+            token = token_list["gte"]
+
+        return token.set_post(pos_start=pos_start, pos_end=self.pos)
