@@ -149,6 +149,8 @@ class Interpreter:
             result, error = left.and_l(right)
         if node.op_token.matches("keyword", "or"):
             result, error = left.or_l(right)
+        if node.op_token.matches("keyword", "xor"):
+            result, error = left.xor_l(right)
 
         if error:
             return res.failure(error)

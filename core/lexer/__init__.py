@@ -14,6 +14,7 @@ keywords_list = [
     "const",
     "and",
     "or",
+    "xor",
     "not"
 ]
 

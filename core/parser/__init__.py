@@ -228,7 +228,9 @@ class Parser:
                 return result.success(VarAssignNode(var_name, expr, const=True))
 
         node = result.register(self.bin_op(self.comp_expr, ((token_list["keyword"].type, "and"),
-                                                            (token_list["keyword"].type, "or"))))
+                                                            (token_list["keyword"].type, "or"),
+                                                            (token_list["keyword"].type, "xor"),
+                                                            )))
 
         if result.error:
             return result.failure(

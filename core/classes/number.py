@@ -78,6 +78,12 @@ class FuseNumber:
         else:
             return FuseNumber(0).set_context(self.context), None
 
+    def xor_l(self, other):
+        if bool(self.value) + bool(other.value) == 1:
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
     def and_l(self, other):
         if bool(self.value) and bool(other.value):
             return FuseNumber(1).set_context(self.context), None
