@@ -158,7 +158,7 @@ class Parser:
         return self.power()
 
     def power(self):
-        return self.bin_op(self.atom, (token_list["pow"],), self.factor)
+        return self.bin_op(self.atom, (token_list["pow"].type,), self.factor)
 
     def term(self):
         return self.bin_op(self.factor, (token_list["mul"].type, token_list["div"].type))

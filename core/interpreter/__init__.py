@@ -115,10 +115,10 @@ class Interpreter:
             result, error = left.greater(right)
         if node.op_token.type == token_list["gte"].type:
             result, error = left.less(right).not_l()
-        if node.op_token.type == token_list["and"].type:
-            result, error = left.and_l(right)
-        if node.op_token.type == token_list["or"].type:
-            result, error = left.or_l(right)
+        #if node.op_token.type == token_list["and"].type:
+        #    result, error = left.and_l(right)
+        #if node.op_token.type == token_list["or"].type:
+        #    result, error = left.or_l(right)
 
 
         if error:
@@ -133,8 +133,8 @@ class Interpreter:
 
         if node.op_token.type == token_list["minus"].type:
             operand, error = operand.multiply(FuseNumber(-1))
-        if node.op_token.type == token_list["not"].type:
-            operand, error = operand.not_l()
+        #if node.op_token.type == token_list["not"].type:
+        #    operand, error = operand.not_l()
 
         if error:
             return result.failure(error)
