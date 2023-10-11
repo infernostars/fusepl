@@ -48,5 +48,42 @@ class FuseNumber:
         copy.set_context(self.context)
         return copy
 
+    def equals(self, other):
+        if self.value == other.value:
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+    def less(self, other):
+        if self.value < other.value:
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+    def greater(self, other):
+        if self.value > other.value:
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+    def not_l(self):
+        if self.value == 0:
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+    def or_l(self, other):
+        if bool(self.value) or bool(other.value):
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+    def and_l(self, other):
+        if bool(self.value) and bool(other.value):
+            return FuseNumber(1).set_context(self.context), None
+        else:
+            return FuseNumber(0).set_context(self.context), None
+
+
     def __repr__(self):
         return str(self.value)

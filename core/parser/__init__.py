@@ -249,7 +249,8 @@ class Parser:
             result.register_advancement()
             self.advance()
             right = result.register(func_b())
-            if result.error: return result
+            if result.error:
+                return result
             left = BinaryOpNode(left, op_token, right)
 
         return result.success(left)

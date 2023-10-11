@@ -3,6 +3,12 @@ from core.lexer import token_list
 from core.classes.errors import *
 
 
+class Variable:
+    def __init__(self, value, constant):
+        self.value = value
+        self.constant = constant
+
+
 class SymbolTable:
     def __init__(self):
         self.symbols = {}
@@ -11,11 +17,17 @@ class SymbolTable:
     def get(self, name):
         value = self.symbols.get(name, None)
         if value == None and self.parent:
-            return self.parent.get(name)
+            return self.parent.get(name).value
         return value
 
-    def set(self, name, value):
-        self.symbols[name] = value
+    def set(self, name, value, constant=False):
+        if (self.symbols.get(name, False) or
+            self.symbols.get(name, Variable("filler-to-have-no-constant", False)).constant):
+            print(self.symbols.get(name, False))
+            print(self.symbols.get(name, Variable("filler-to-have-no-constant", False)).constant)
+            return None
+        self.symbols[name] = Variable(value, constant)
+        return 1
 
     def remove(self, name):
         del self.symbols[name]
@@ -65,22 +77,36 @@ class Interpreter:
 
         if not value:
             return result.failure(
-                node.pos_start, node.pos_end,
-                f"{var_name} is not defined",
-                context
+                VariableUndefinedError(
+                    node.pos_start, node.pos_end,
+                    f"{var_name} is not defined",
+                    context
+                )
             )
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.value.copy().set_pos(node.pos_start, node.pos_end)
         return result.success(value)
 
     def visit_VarAssignNode(self, node, context):
         result = RuntimeResult()
         var_name = node.var_name_token.value
         value = result.register(self.visit(node.value_node, context))
+        print(value)
+
         if result.error:
             return result
 
-        context.symbol_table.set(var_name, value)
+        error = context.symbol_table.set(var_name, value)
+        print(error)
+        if error is None:
+            return result.failure(
+                ConstantAssignmentError(
+                    node.pos_start, node.pos_end,
+                    f"'{var_name}' is a constant",
+                    context
+                )
+            )
+
         return result.success(value)
 
     def visit_NumberNode(self, node, context):
@@ -106,20 +132,28 @@ class Interpreter:
         if node.op_token.type == token_list["eq"].type:
             result, error = left.equals(right)
         if node.op_token.type == token_list["neq"].type:
-            result, error = left.equals(right).not_l()
+            result, error = left.equals(right)
+            if error:
+                return res.failure(error)
+            result, error = result.not_l()
         if node.op_token.type == token_list["lt"].type:
             result, error = left.less(right)
         if node.op_token.type == token_list["lte"].type:
-            result, error = left.greater(right).not_l()
+            result, error = left.greater(right)
+            if error:
+                return res.failure(error)
+            result, error = result.not_l()
         if node.op_token.type == token_list["gt"].type:
             result, error = left.greater(right)
         if node.op_token.type == token_list["gte"].type:
-            result, error = left.less(right).not_l()
-        #if node.op_token.type == token_list["and"].type:
-        #    result, error = left.and_l(right)
-        #if node.op_token.type == token_list["or"].type:
-        #    result, error = left.or_l(right)
-
+            result, error = left.less(right)
+            if error:
+                return res.failure(error)
+            result, error = result.not_l()
+        if node.op_token.matches("keyword", "and"):
+            result, error = left.and_l(right)
+        if node.op_token.matches("keyword", "or"):
+            result, error = left.or_l(right)
 
         if error:
             return res.failure(error)
@@ -133,8 +167,8 @@ class Interpreter:
 
         if node.op_token.type == token_list["minus"].type:
             operand, error = operand.multiply(FuseNumber(-1))
-        #if node.op_token.type == token_list["not"].type:
-        #    operand, error = operand.not_l()
+        if node.op_token.matches("keyword", "not"):
+            operand, error = operand.not_l()
 
         if error:
             return result.failure(error)

@@ -11,6 +11,7 @@ var_characters = "_"
 
 keywords_list = [
     "var",
+    "const",
     "and",
     "or",
     "not"
@@ -131,7 +132,7 @@ char: {self.current_char}""")
 
     def parse(self):
         """
-        Turns self.text into a list of Tokens.
+        Turns `self.text` into a `list` of `Tokens`.
         :return: a list of Tokens
         """
         tokens = []

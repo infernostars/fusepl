@@ -34,8 +34,8 @@ class InvalidSyntaxError(Error):
 
 
 class FuseRuntimeError(Error):
-    def __init__(self, pos_start, pos_end, details, context):
-        super().__init__(pos_start, pos_end, "FuseRuntimeError", details)
+    def __init__(self, pos_start, pos_end, details, context, key="FuseRuntimeError"):
+        super().__init__(pos_start, pos_end, key, details)
         self.context = context
 
     def __repr__(self):
@@ -55,3 +55,15 @@ class FuseRuntimeError(Error):
             context = context.parent
 
         return "Traceback: [most recent call last]:" + result
+
+
+class VariableUndefinedError(FuseRuntimeError):
+    def __init__(self, pos_start, pos_end, details, context):
+        super().__init__(pos_start, pos_end, details, context, key="VariableUndefinedError")
+        self.context = context
+
+
+class ConstantAssignmentError(FuseRuntimeError):
+    def __init__(self, pos_start, pos_end, details, context):
+        super().__init__(pos_start, pos_end, details, context, key="ConstantAssignmentError")
+        self.context = context
