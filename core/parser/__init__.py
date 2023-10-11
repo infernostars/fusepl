@@ -10,7 +10,7 @@ class NumberNode:
         self.pos_end = self.token.pos_end
 
     def __repr__(self):
-        return f'{self.token}'
+        return f'({self.token})'
 
 
 class BinaryOpNode:
@@ -34,6 +34,8 @@ class UnaryOpNode:
         self.pos_start = self.op_token.pos_start
         self.pos_end = self.node.pos_end
 
+    def __repr__(self):
+        return f"({self.op_token}, {self.node})"
 
 class VarAccessNode:
     def __init__(self, var_name_token):
@@ -42,6 +44,8 @@ class VarAccessNode:
         self.pos_start = self.var_name_token.pos_start
         self.pos_end = self.var_name_token.pos_end
 
+    def __repr__(self):
+        return f"({self.var_name_token})"
 
 class VarAssignNode:
     def __init__(self, var_name_token, value_node, const=False):
@@ -53,7 +57,7 @@ class VarAssignNode:
         self.pos_end = self.value_node.pos_end
 
     def __repr__(self):
-        return f"({self.op_token}, {self.node})"
+        return f"({self.var_name_token}, {self.value_node})"
 
 
 # parse result

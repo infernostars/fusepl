@@ -139,7 +139,7 @@ char: {self.current_char}""")
         tokens = []
         self.advance()
         while self.current_char is not None:
-            if self.current_char in " \t":
+            while self.current_char in " \t":
                 self.advance()  # ignore
             match self.current_char:
                 # simple tokens
