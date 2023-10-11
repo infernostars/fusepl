@@ -21,13 +21,10 @@ class SymbolTable:
         return value
 
     def set(self, name, value, constant=False):
-        if (self.symbols.get(name, False) or
-            self.symbols.get(name, Variable("filler-to-have-no-constant", False)).constant):
-            print(self.symbols.get(name, False))
-            print(self.symbols.get(name, Variable("filler-to-have-no-constant", False)).constant)
-            return None
+        if self.symbols.get(name, Variable("filler-to-have-no-constant", False)).constant:
+            return 1
         self.symbols[name] = Variable(value, constant)
-        return 1
+        return None
 
     def remove(self, name):
         del self.symbols[name]
@@ -91,14 +88,12 @@ class Interpreter:
         result = RuntimeResult()
         var_name = node.var_name_token.value
         value = result.register(self.visit(node.value_node, context))
-        print(value)
 
         if result.error:
             return result
 
-        error = context.symbol_table.set(var_name, value)
-        print(error)
-        if error is None:
+        error = context.symbol_table.set(var_name, value, node.const)
+        if isinstance(error, int):
             return result.failure(
                 ConstantAssignmentError(
                     node.pos_start, node.pos_end,

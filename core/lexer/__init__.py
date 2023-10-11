@@ -202,7 +202,7 @@ char: {self.current_char}""")
         dot_count = 0
         pos_start = self.pos.copy()
 
-        while self.current_char is not None and self.current_char in digits:
+        while self.current_char is not None and self.current_char in digits + ".":
             if self.current_char == ".":
                 if dot_count == 1:
                     break  # TODO: error

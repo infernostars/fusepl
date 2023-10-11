@@ -44,9 +44,10 @@ class VarAccessNode:
 
 
 class VarAssignNode:
-    def __init__(self, var_name_token, value_node):
+    def __init__(self, var_name_token, value_node, const=False):
         self.var_name_token = var_name_token
         self.value_node = value_node
+        self.const = const
 
         self.pos_start = self.var_name_token.pos_start
         self.pos_end = self.value_node.pos_end
@@ -191,7 +192,8 @@ class Parser:
 
     def expression(self):
         result = ParseResult()
-        if self.current_token.matches(token_list["keyword"].type, "var"):
+        if self.current_token.matches(token_list["keyword"].type, "var") or self.current_token.matches(token_list["keyword"].type, "const"):
+            definition_token = self.current_token
             result.register_advancement()
             self.advance()
 
@@ -220,7 +222,10 @@ class Parser:
             expr = result.register(self.expression())
             if result.error:
                 return result
-            return result.success(VarAssignNode(var_name, expr))
+            if definition_token.matches(token_list["keyword"].type, "var"):
+                return result.success(VarAssignNode(var_name, expr, const=False))
+            else:
+                return result.success(VarAssignNode(var_name, expr, const=True))
 
         node = result.register(self.bin_op(self.comp_expr, ((token_list["keyword"].type, "and"),
                                                             (token_list["keyword"].type, "or"))))
