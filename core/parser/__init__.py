@@ -59,6 +59,13 @@ class VarAssignNode:
     def __repr__(self):
         return f"({self.var_name_token}, {self.value_node})"
 
+class IfNode:
+    def __init__(self, cases, else_case):
+        self.cases = cases
+        self.else_case = else_case
+
+        self.pos_start = self.cases[0][0].pos_start
+        self.pos_end = (self.else_case or self.cases[-1][0]).pos_end
 
 # parse result
 
@@ -113,6 +120,72 @@ class Parser:
                 ))
         return res
 
+    def if_expr(self):
+        result = ParseResult()
+        cases = []
+        else_case = None
+        if not self.current_token.matches("keyword", "if"):
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                "Expected an 'if'"
+            ))
+
+        result.register_advancement()
+        self.advance()
+
+        condition = result.register(self.expression())
+        if result.error:
+            return result
+
+        if not self.current_token.matches("keyword", "then"):
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                "Expected a 'then'"
+            ))
+
+        result.register_advancement()
+        self.advance()
+
+        expression = result.register(self.expression())
+        if result.error:
+            return result
+        cases.append((condition, expression))
+
+        while self.current_token.matches("keyword", "elif"):
+            result.register_advancement()
+            self.advance()
+
+            condition = result.register(self.expression())
+            if result.error:
+                return result
+
+            if not self.current_token.matches("keyword", "then"):
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    "Expected a 'then'"
+                ))
+
+            result.register_advancement()
+            self.advance()
+
+            expression = result.register(self.expression())
+            if result.error:
+                return result
+            cases.append((condition, expression))
+
+        if self.current_token.matches("keyword", "else"):
+            result.register_advancement()
+            self.advance()
+
+            expression = result.register(self.expression())
+            if result.error:
+                return result
+            else_case = expression
+
+        return result.success(IfNode(cases, else_case))
+
+
+
     def atom(self):
         result = ParseResult()
         token = self.current_token
@@ -142,6 +215,12 @@ class Parser:
                     self.current_token.pos_start, self.current_token.pos_end,
                     "Expected closing parenthesis"
                 ))
+
+        elif token.matches("keyword", "if"):
+            if_expr = result.register(self.if_expr())
+            if result.error:
+                return result
+            return result.success(if_expr)
 
         return result.failure(InvalidSyntaxError(
             token.pos_start, token.pos_end,

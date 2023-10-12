@@ -15,7 +15,11 @@ keywords_list = [
     "and",
     "or",
     "xor",
-    "not"
+    "not",
+    "if",
+    "then",
+    "elif",
+    "else"
 ]
 
 # position class

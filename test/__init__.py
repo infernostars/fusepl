@@ -2,6 +2,7 @@ import unittest
 from core.interpreter import Interpreter, Context, SymbolTable, FuseNumber
 from core.lexer import Lexer, Token, Position
 from core.parser import Parser, NumberNode, BinaryOpNode, VarAssignNode
+from core.executor import run
 
 global_symbol_table = SymbolTable()
 
@@ -36,6 +37,11 @@ class Tests(unittest.TestCase):
         context.symbol_table = global_symbol_table
         out = Interpreter().visit(parser.parse().node, context)
         self.assertEqual(217, out.value.value)
+    def test_if_statement(self):
+        context = Context("<shell>")
+        context.symbol_table = global_symbol_table
+        out = run(context, "if true or false then 1000 else 2000")
+        self.assertEqual(1000, out[0].value)
 
 if __name__ == '__main__':
     unittest.main()
