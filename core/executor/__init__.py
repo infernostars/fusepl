@@ -1,4 +1,4 @@
-from core.classes.number import FuseNumber
+from core.classes.fuse_classes.number import FuseNumber
 from core.interpreter import Interpreter, Context, SymbolTable
 from core.lexer import Lexer
 from core.parser import Parser

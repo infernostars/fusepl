@@ -1,7 +1,8 @@
 from core.classes.errors import FuseRuntimeError
+from core.classes.fuse_classes.base import FuseClass
 
 
-class FuseNumber:
+class FuseNumber(FuseClass):
     def __init__(self, value):
         self.value = value
         self.set_pos()

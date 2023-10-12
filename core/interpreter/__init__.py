@@ -1,4 +1,4 @@
-from core.classes.number import FuseNumber
+from core.classes.fuse_classes.number import FuseNumber
 from core.lexer import token_list
 from core.classes.errors import *
 
