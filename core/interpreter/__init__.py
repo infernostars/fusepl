@@ -67,6 +67,15 @@ class Interpreter:
     def no_visit_method(self, node, context):  # default if there isn't a special method
         raise Exception(f"no visit method for {type(node).__name__}")
 
+    def visit_BlockNode(self, node, context):
+        res = RuntimeResult()
+        out = res.register(self.visit(node.lead, context))
+        if node.rest:
+            out = res.register(self.visit(node.rest, context))
+        if res.error:
+            return res
+        return res.success(out)
+
     def visit_VarAccessNode(self, node, context):
         result = RuntimeResult()
         var_name = node.var_name_token.value

@@ -107,6 +107,7 @@ token_list = {
     "lte": Token("lte"),                # x <= y
     "gte": Token("gte"),                # x >= y
 
+    "newline": Token("newline"),
     "eof": Token("eof"),
 }
 
@@ -143,10 +144,17 @@ char: {self.current_char}""")
         tokens = []
         self.advance()
         while self.current_char is not None:
-            while self.current_char in " \t":
+            while self.current_char in " \t\r":
                 self.advance()  # ignore
+                if self.current_char is None:
+                    break
+            if self.current_char is None:
+                break
             match self.current_char:
                 # simple tokens
+                case "\n":
+                    tokens.append(token_list["newline"].set_post(pos_start=self.pos))
+                    self.advance()
                 case "+":
                     tokens.append(token_list["plus"].set_post(pos_start=self.pos))
                     self.advance()

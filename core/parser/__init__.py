@@ -67,6 +67,18 @@ class IfNode:
         self.pos_start = self.cases[0][0].pos_start
         self.pos_end = (self.else_case or self.cases[-1][0]).pos_end
 
+class BlockNode:
+    def __init__(self, lead, rest=None):
+        self.lead = lead
+        self.rest = rest
+
+        self.pos_start = self.lead.pos_start
+        self.pos_end = self.rest.pos_end if rest else self.lead.pos_end
+
+    def __repr__(self):
+        if self.rest: return f"({self.lead} {self.rest})"
+        return f"({self.lead})"
+
 # parse result
 
 
@@ -111,7 +123,7 @@ class Parser:
         return self.current_token
 
     def parse(self):
-        res = self.expression()
+        res = self.block()
         if not res.error and self.current_token.type != token_list["eof"].type:
             return res.failure(
                 InvalidSyntaxError(
@@ -324,6 +336,29 @@ class Parser:
             )
 
         return result.success(node)
+
+    def block(self):
+        result = ParseResult()
+
+        lead = result.register(self.expression())
+        result.register_advancement()
+        self.advance()
+        token = self.current_token
+        rest = None
+
+        if token.type != token_list["eof"].type:
+            rest = result.register(self.block())
+        if result.error:
+            return result.failure(
+                InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    "???"
+                )
+            )
+        if rest:
+            return result.success(BlockNode(lead, rest))
+
+        return result.success(BlockNode(lead))
 
     def bin_op(self, func_a, ops, func_b=None):
         if func_b is None:
